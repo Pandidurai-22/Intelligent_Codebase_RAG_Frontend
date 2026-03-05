@@ -3,7 +3,7 @@ import './globals.css';
 
 
 export const metadata = {
-  title: "CodeInsig",
+  title: "CodeInsight AI",
   description: "CodeInsight AI - Your AI-powered code assistant",
 };
 

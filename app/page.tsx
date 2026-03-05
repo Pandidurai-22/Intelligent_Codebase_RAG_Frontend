@@ -1,115 +1,77 @@
-"use client"
+"use client";
 
-
-import Header from '../components/Header'
-import Sidebar from "../components/Sidebar"
-import CodeViewer from "../components/CodeViewer"
-import ChatPanel from "../components/ChatPanel"
-import { useState } from 'react'
-
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [showChat, setShowChat] =  useState(true);
+  const [repoUrl, setRepoUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleIndex = async () => {
+    if (!repoUrl) return;
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("http://localhost:8000/index-repo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ repo_url: repoUrl }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const repoName = repoUrl.split("/").pop()?.replace(".git", "");
+        router.push(`/workspace/${repoName}`);
+      } else {
+        alert("Failed to index repository");
+      }
+    } catch (err) {
+      alert("Backend not reachable");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col">
-      <Header showChat={showChat} setShowChat={setShowChat} />
+    <div className="h-screen flex items-center justify-center bg-[#0D1117] text-white">
+      <div className="w-full max-w-xl bg-[#161B22] p-8 rounded-2xl shadow-lg space-y-6 border-2 border-blue-700">
+        <h1 className="text-2xl font-semibold text-center">
+          CodeInsight AI
+        </h1>
 
-      {/* Main 3 Panel Layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar
-        <aside className="w-64 border-r border-gray-800 p-4">
-          <h2 className="text-sm font-semibold mb-4">Repository</h2>
+        <p className="text-sm text-gray-400 text-center">
+          Connect a GitHub repository to start analyzing your codebase
+        </p>
 
-          <input
-            type="text"
-            placeholder="Search files..."
-            className="w-full bg-[#161B22] p-2 rounded-md text-sm outline-none mb-4"
-          />
+        <input
+          type="text"
+          placeholder="https://github.com/user/repo"
+          value={repoUrl}
+          onChange={(e) => setRepoUrl(e.target.value)}
+          className="w-full p-3 rounded-lg bg-[#0D1117] border border-gray-700 outline-none focus:border-blue-500 text-sm"
+        />
 
-          <div className="text-sm text-gray-400 space-y-2">
-            <div>📁 src</div>
-            <div className="ml-4">📄 auth.ts</div>
-            <div className="ml-4">📄 user.ts</div>
-            <div>📄 package.json</div>
-          </div>
+        <button
+          onClick={handleIndex}
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 transition p-3 rounded-lg text-sm font-medium disabled:opacity-50"
+        >
+          {loading ? "Indexing..." : "Index Repository"}
+        </button>
+        <div className="skip flex justify-center rounded-md hover:bg-red-500 hover:border-0 hover:opacity-70">
+          <button
+          onClick={()=> router.push('/workspace/demo')}
+           className = " p-2 ">
+          Skip [testing]
+        </button>
+        </div>
 
-          <button className="mt-6 w-full bg-blue-600 hover:bg-blue-700 transition p-2 rounded-md text-sm">
-            View Dependency Graph
-          </button>
-        </aside> */}
-        <Sidebar/>
-
-        {/* Code Viewer */}
-        {/* <main className="flex-1 border-r border-gray-800 p-6">
-          <div className="text-sm text-gray-400 mb-2">
-            src/auth/auth.ts
-          </div>
-
-          <div className="bg-[#161B22] rounded-xl p-4 h-full overflow-auto font-mono text-sm">
-            <pre>
-{`function generateToken(user) {
-  const payload = { id: user.id };
-  return jwt.sign(payload, process.env.JWT_SECRET);
-}`}
-            </pre>
-          </div>
-        </main> */}
-
-        {/* <CodeViewer/> */}
-
-        {/* AI Assistant Panel
-        <aside className="w-96 p-4 flex flex-col">
-          <div className="text-sm font-semibold mb-4">
-            AI Code Assistant
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-4 text-sm">
-            <div className="bg-[#161B22] p-3 rounded-md">
-              Where is JWT implemented?
-            </div>
-
-            <div className="bg-blue-600 p-3 rounded-md">
-              JWT is implemented in <b>auth.ts</b> inside the
-              generateToken function (lines 1–4).
-              <div className="text-xs mt-2 text-blue-200">
-                Confidence: 92% • Latency: 420ms
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <input
-              type="text"
-              placeholder="Ask about this repository..."
-              className="w-full bg-[#161B22] p-2 rounded-md outline-none text-sm"
-            />
-          </div>
-        </aside> */}
-
-    {/* {showChat && (
-      <div className="w-96 border-l border-gray-800">
-        <ChatPanel />
       </div>
-    )} */}
-
-     <div className="flex flex-1 overflow-hidden">
-    {/* Code Viewer */}
-    <div className="flex-1 min-w-0">
-      <CodeViewer />
-    </div>
-
-    {/* Chat Panel */}
-    {showChat && (
-      <div className="w-96 border-l border-gray-800 flex-shrink-0">
-        <ChatPanel />
-      </div>
-    )}
-  </div>
-      </div>
-      {/* <div className= "">
-        
-      </div> */}
     </div>
   );
 }
